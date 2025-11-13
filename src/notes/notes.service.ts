@@ -1,24 +1,35 @@
-import { ConflictException, HttpException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Notes } from './schemas/note.schema';
+import { Users } from 'src/users/schemas/users.schema';
 
 @Injectable()
 export class NotesService {
-  constructor(@InjectModel(Notes.name) private noteModel: Model<Notes>) {}
+  constructor(
+    @InjectModel(Notes.name) private noteModel: Model<Notes>,
+    @InjectModel(Users.name) private userModel: Model<Users>,
+  ) {}
 
   async create(createNoteDto: CreateNoteDto): Promise<Notes> {
-    const { title, content } = createNoteDto;
+    const { title, content, user } = createNoteDto;
     const existing = await this.noteModel.findOne({ title });
+    const userId = await this.userModel.findById(user);
+    if (!userId) throw new NotFoundException('User not found');
     if (existing) {
       throw new ConflictException(`Note "${title}" already exists`);
     }
 
     try {
-      const createdNote = new this.noteModel({ title, content });
+      const createdNote = new this.noteModel({ title, content, user });
       return await createdNote.save();
     } catch (error) {
       throw new Error(error);

@@ -19,8 +19,14 @@ export class NotesController {
 
   @Post()
   async create(@Body() createNoteDto: CreateNoteDto) {
-    const { title, content } = createNoteDto;
-    const createdNote = await this.notesService.create({ title, content });
+    const { title, content, user } = createNoteDto;
+    const isValid = mongoose.Types.ObjectId.isValid(user);
+    if (!isValid) throw new HttpException('Invalid ID', 404);
+    const createdNote = await this.notesService.create({
+      title,
+      content,
+      user,
+    });
     return {
       message: 'Note created successfully',
       status: 'success',
