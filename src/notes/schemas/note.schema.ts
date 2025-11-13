@@ -3,7 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 @Schema()
 export class Notes {
   @Prop({ unique: true, required: true })
-  note: string;
+  title: string;
 
   @Prop()
   content: string;

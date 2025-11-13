@@ -6,8 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UsePipes,
-  ValidationPipe,
   HttpException,
 } from '@nestjs/common';
 import { NotesService } from './notes.service';
@@ -21,13 +19,22 @@ export class NotesController {
 
   @Post()
   async create(@Body() createNoteDto: CreateNoteDto) {
-    const { note, content } = createNoteDto;
-    return this.notesService.create({ note, content });
+    const { title, content } = createNoteDto;
+    const createdNote = await this.notesService.create({ title, content });
+    return {
+      message: 'Note created successfully',
+      status: 'success',
+      data: createdNote,
+    };
   }
 
   @Get()
   async findAll() {
-    return this.notesService.findAll();
+    const notes = await this.notesService.findAll();
+    return {
+      status: 'success',
+      data: notes,
+    };
   }
 
   @Get('/:id')
@@ -36,22 +43,30 @@ export class NotesController {
     if (!isValid) throw new HttpException('Invalid ID', 404);
     const findNote = await this.notesService.findOne(id);
     if (!findNote) throw new HttpException('Note ID not found', 404);
-    return findNote;
+    return { status: 'success', data: findNote };
   }
 
   @Patch('/:id')
   async update(@Param('id') id: string, @Body() updateNoteDto: UpdateNoteDto) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 404);
-    return this.notesService.update(id, updateNoteDto);
+    const updateNote = await this.notesService.update(id, updateNoteDto);
+    return {
+      message: 'Note updated successfully',
+      status: 'success',
+      data: updateNote,
+    };
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 404);
-    const deleteNote = await this.notesService.remove(id);
-    if (!deleteNote) throw new HttpException('Note not found', 404);
-    return this.notesService.remove(id);
+    await this.notesService.remove(id);
+
+    return {
+      message: `Note deleted successfully`,
+      status: 'success',
+    };
   }
 }

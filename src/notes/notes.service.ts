@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 
@@ -11,14 +11,14 @@ export class NotesService {
   constructor(@InjectModel(Notes.name) private noteModel: Model<Notes>) {}
 
   async create(createNoteDto: CreateNoteDto): Promise<Notes> {
-    const { note, content } = createNoteDto;
-    const existing = await this.noteModel.findOne({ note });
+    const { title, content } = createNoteDto;
+    const existing = await this.noteModel.findOne({ title });
     if (existing) {
-      throw new ConflictException(`Note "${note}" already exists`);
+      throw new ConflictException(`Note "${title}" already exists`);
     }
 
     try {
-      const createdNote = new this.noteModel({ note, content });
+      const createdNote = new this.noteModel({ title, content });
       return await createdNote.save();
     } catch (error) {
       throw new Error(error);
@@ -33,15 +33,16 @@ export class NotesService {
     return await this.noteModel.findById(id);
   }
 
-  async update(id: string, updateNoteDto: UpdateNoteDto) {
+  async update(id: string, updateNoteDto: UpdateNoteDto): Promise<Notes> {
     const note = await this.noteModel.findByIdAndUpdate(id, updateNoteDto, {
       new: true,
     });
+    if (!note) throw new HttpException('Note not found', 404);
     return note;
   }
 
   async remove(id: string) {
-    const note = await this.noteModel.findByIdAndDelete(id);
-    return `Note deleted successfully`;
+    const exists = await this.noteModel.findByIdAndDelete(id);
+    if (!exists) throw new HttpException('Note not found', 404);
   }
 }
