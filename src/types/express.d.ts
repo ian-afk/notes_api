@@ -13,5 +13,6 @@ declare module 'express' {
 
   interface Request {
     cookies?: { [key: string]: string };
+    user?: User;
   }
 }
