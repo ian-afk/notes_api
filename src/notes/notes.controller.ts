@@ -8,27 +8,38 @@ import {
   Delete,
   HttpException,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import mongoose from 'mongoose';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import type { Request, User } from 'express';
 
 @Controller('notes')
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
-  async create(@Body() createNoteDto: CreateNoteDto) {
-    const { title, content, user } = createNoteDto;
-    const isValid = mongoose.Types.ObjectId.isValid(user);
-    if (!isValid) throw new HttpException('Invalid ID', 404);
-    const createdNote = await this.notesService.create({
-      title,
-      content,
-      user,
-    });
+  async create(@Req() req: Request, @Body() createNoteDto: CreateNoteDto) {
+    const user = req.user as User;
+    if (!user || !user._id) {
+      throw new HttpException('Unauthorized', 401); // Or any appropriate status
+    }
+    const { title, content } = createNoteDto;
+    // const isValid = mongoose.Types.ObjectId.isValid(user);
+    // if (!isValid) throw new HttpException('Invalid ID', 404);
+    console.log(user);
+
+    const createdNote = await this.notesService.create(
+      {
+        title,
+        content,
+      },
+      user._id.toString(),
+    );
     return {
       message: 'Note created successfully',
       status: 'success',
@@ -46,6 +57,7 @@ export class NotesController {
     };
   }
 
+  @UseGuards(AuthGuard)
   @Get('/:id')
   async findOne(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
@@ -55,6 +67,7 @@ export class NotesController {
     return { status: 'success', data: findNote };
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/:id')
   async update(@Param('id') id: string, @Body() updateNoteDto: UpdateNoteDto) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
@@ -67,6 +80,7 @@ export class NotesController {
     };
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);

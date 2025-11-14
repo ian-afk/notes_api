@@ -19,8 +19,10 @@ export class NotesService {
     @InjectModel(Users.name) private userModel: Model<Users>,
   ) {}
 
-  async create(createNoteDto: CreateNoteDto): Promise<Notes> {
-    const { title, content, user } = createNoteDto;
+  async create(
+    { title, content }: CreateNoteDto,
+    user: string,
+  ): Promise<Notes> {
     const existing = await this.noteModel.findOne({ title });
     const userId = await this.userModel.findById(user);
     if (!userId) throw new NotFoundException('User not found');
