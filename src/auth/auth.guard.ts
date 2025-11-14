@@ -11,6 +11,7 @@ import { Request } from 'express';
 interface JwtPayload {
   sub: string;
   email: string;
+  providerId: 'local' | 'google';
 }
 
 @Injectable()
@@ -29,8 +30,9 @@ export class AuthGuard implements CanActivate {
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
       request.user = {
-        userId: payload.sub,
+        _id: payload.sub,
         email: payload.email,
+        provider: payload.providerId,
       };
 
       return true;
