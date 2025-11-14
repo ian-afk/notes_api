@@ -7,11 +7,13 @@ import {
   Param,
   Delete,
   HttpException,
+  UseGuards,
 } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import mongoose from 'mongoose';
 import { UpdateNoteDto } from './dto/update-note.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('notes')
 export class NotesController {
@@ -34,6 +36,7 @@ export class NotesController {
     };
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async findAll() {
     const notes = await this.notesService.findAll();
