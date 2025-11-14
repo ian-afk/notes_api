@@ -7,18 +7,18 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 
 import { AuthModule } from './auth/auth.module';
-import constants from './auth/constants';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [constants],
     }),
     NotesModule,
     UsersModule,
     AuthModule,
     MongooseModule.forRoot('mongodb://localhost/notes'),
+    SharedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
