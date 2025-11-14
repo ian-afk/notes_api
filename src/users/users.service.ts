@@ -4,6 +4,7 @@ import { Users } from './schemas/users.schema';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import bcrypt from 'node_modules/bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -11,6 +12,9 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<Users> {
     const { email, password } = createUserDto;
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     const existing = await this.userModel.findOne({ email });
     if (existing) {
       throw new ConflictException(`Email ${email} already existing`);
@@ -19,7 +23,7 @@ export class UsersService {
     try {
       const createdUser = new this.userModel({
         email,
-        password,
+        password: hashedPassword,
       });
       return await createdUser.save();
     } catch (error) {
@@ -36,5 +40,8 @@ export class UsersService {
 
   async findAll() {
     return await this.userModel.find({});
+  }
+  async findOne(email: string) {
+    return await this.userModel.findOne({ email });
   }
 }
