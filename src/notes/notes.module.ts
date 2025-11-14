@@ -5,8 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Notes, NotesSchema } from './schemas/note.schema';
 import { Users, UsersSchema } from 'src/users/schemas/users.schema';
 
+import { SharedModule } from 'src/shared/shared.module';
+
 @Module({
   imports: [
+    SharedModule,
     MongooseModule.forFeature([
       { name: Notes.name, schema: NotesSchema },
       {
