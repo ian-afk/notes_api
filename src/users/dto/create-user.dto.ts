@@ -1,12 +1,26 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, IsEnum } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail()
-  @IsNotEmpty()
   email: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
-  password: string;
+  @IsOptional()
+  password?: string;
+
+  @IsEnum(['local', 'google'])
+  @IsOptional()
+  provider?: 'local' | 'google';
+
+  @IsString()
+  @IsOptional()
+  providerId?: string;
+
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  picture?: string;
 }

@@ -13,7 +13,7 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<Users> {
     const { email, password } = createUserDto;
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password!, 12);
 
     const existing = await this.userModel.findOne({ email });
     if (existing) {
@@ -41,7 +41,10 @@ export class UsersService {
   async findAll() {
     return await this.userModel.find({});
   }
-  async findOne(email: string) {
+  async findByEmail(email: string) {
     return await this.userModel.findOne({ email });
+  }
+  async findByGoogleId(providerId: string) {
+    return this.userModel.findOne({ providerId });
   }
 }

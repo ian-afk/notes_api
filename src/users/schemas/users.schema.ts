@@ -6,7 +6,19 @@ export class Users {
   email: string;
 
   @Prop()
-  password: string;
+  password?: string;
+
+  @Prop({ default: 'local' })
+  provider: 'local' | 'google';
+
+  @Prop()
+  providerId?: string;
+
+  @Prop()
+  name?: string;
+
+  @Prop()
+  picture?: string;
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);
