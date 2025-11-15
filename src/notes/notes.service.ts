@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   HttpException,
   Injectable,
   NotFoundException,
@@ -8,15 +9,19 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Document, Model } from 'mongoose';
 import { Notes } from './schemas/note.schema';
 import { Users } from 'src/users/schemas/users.schema';
+import { User } from 'express';
+import { UserDocument } from 'src/types/common';
+
+type NoteDocument = Notes & Document;
 
 @Injectable()
 export class NotesService {
   constructor(
-    @InjectModel(Notes.name) private noteModel: Model<Notes>,
-    @InjectModel(Users.name) private userModel: Model<Users>,
+    @InjectModel(Notes.name) private noteModel: Model<NoteDocument>,
+    @InjectModel(Users.name) private userModel: Model<UserDocument>,
   ) {}
 
   async create(
@@ -42,23 +47,50 @@ export class NotesService {
     return await this.noteModel.find({ user }).exec();
   }
 
-  async findOne(id: string) {
-    return await this.noteModel.findById(id);
+  async findOne(id: string, user: string) {
+    return await this.noteModel.find({ _id: id, user });
   }
 
-  async update(id: string, updateNoteDto: UpdateNoteDto): Promise<Notes> {
-    // antok na ako at this point
-    // 1 add a logic to check if the userId is equal to the req.userid
-    // 2 if correct then proceed
-    const note = await this.noteModel.findByIdAndUpdate(id, updateNoteDto, {
+  async update(
+    { id, user }: { id: string; user: User },
+    updateNoteDto: UpdateNoteDto,
+  ): Promise<Notes> {
+    const findNote = await this.noteModel.findById(id).populate('user');
+
+    if (!findNote) {
+      throw new NotFoundException('Note not found');
+    }
+
+    const noteUserId = findNote.user._id.toString();
+
+    if (noteUserId !== user._id) {
+      throw new ForbiddenException('You can not edit this note');
+    }
+
+    if (updateNoteDto.title) {
+      if (findNote.title.toLowerCase() === updateNoteDto.title.toLowerCase())
+        throw new HttpException('Note Title already exist', 409);
+    }
+
+    const note = (await this.noteModel.findByIdAndUpdate(id, updateNoteDto, {
       new: true,
-    });
-    if (!note) throw new HttpException('Note not found', 404);
+    })) as Notes;
     return note;
   }
 
-  async remove(id: string) {
-    const exists = await this.noteModel.findByIdAndDelete(id);
-    if (!exists) throw new HttpException('Note not found', 404);
+  async remove(id: string, user: User) {
+    const findNote = await this.noteModel.findById(id).populate('user');
+
+    if (!findNote) {
+      throw new NotFoundException('Note not found');
+    }
+
+    const noteUserId = findNote.user._id.toString();
+
+    if (noteUserId !== user._id) {
+      throw new ForbiddenException('You can not delete this note');
+    }
+
+    await this.noteModel.deleteOne({ _id: id });
   }
 }
