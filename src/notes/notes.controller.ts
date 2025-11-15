@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
-import mongoose from 'mongoose';
+
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import type { Request, User } from 'express';
@@ -47,11 +47,8 @@ export class NotesController {
   @UseGuards(AuthGuard)
   @Get()
   async findAll(@Req() req: Request) {
-    const user = req.user as User;
-    if (!user || !user._id) {
-      throw new HttpException('Unauthorized', 401);
-    }
-    const notes = await this.notesService.findAll(user._id.toString());
+    const notes = await this.notesService.findAll(req);
+
     return {
       status: 'success',
       data: notes,
@@ -61,17 +58,7 @@ export class NotesController {
   @UseGuards(AuthGuard)
   @Get('/:id')
   async findOne(@Param('id') id: string, @Req() req: Request) {
-    const user = req.user as User;
-    if (!user || !user._id) {
-      throw new HttpException('Unauthorized', 401);
-    }
-    const isValid = mongoose.Types.ObjectId.isValid(id);
-
-    if (!isValid) throw new HttpException('Invalid ID', 404);
-
-    const findNote = await this.notesService.findOne(id, user._id);
-
-    if (!findNote) throw new HttpException('Note ID not found', 404);
+    const findNote = await this.notesService.findOne(id, req);
 
     return { status: 'success', data: findNote };
   }
@@ -83,16 +70,8 @@ export class NotesController {
     @Body() updateNoteDto: UpdateNoteDto,
     @Req() req: Request,
   ) {
-    const user = req.user as User;
-    if (!user || !user._id) {
-      throw new HttpException('Unauthorized', 401);
-    }
-    const isValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isValid) throw new HttpException('Invalid ID', 404);
-    const updateNote = await this.notesService.update(
-      { id, user },
-      updateNoteDto,
-    );
+    const updateNote = await this.notesService.update(id, req, updateNoteDto);
+
     return {
       message: 'Note updated successfully',
       status: 'success',
@@ -103,14 +82,7 @@ export class NotesController {
   @UseGuards(AuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: Request) {
-    const user = req.user as User;
-    if (!user || !user._id) {
-      throw new HttpException('Unauthorized', 401);
-    }
-
-    const isValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isValid) throw new HttpException('Invalid ID', 404);
-    await this.notesService.remove(id, user);
+    await this.notesService.remove(id, req);
 
     return {
       message: `Note deleted successfully`,

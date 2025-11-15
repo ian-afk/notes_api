@@ -9,10 +9,10 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 
 import { InjectModel } from '@nestjs/mongoose';
-import { Document, Model } from 'mongoose';
+import mongoose, { Document, Error, Model } from 'mongoose';
 import { Notes } from './schemas/note.schema';
 import { Users } from 'src/users/schemas/users.schema';
-import { User } from 'express';
+import { Request, User } from 'express';
 import { UserDocument } from 'src/types/common';
 
 type NoteDocument = Notes & Document;
@@ -39,22 +39,50 @@ export class NotesService {
       const createdNote = new this.noteModel({ title, content, user });
       return await createdNote.save();
     } catch (error) {
-      throw new Error(error);
+      const newError = error as Error;
+      throw new Error(newError.message);
     }
   }
 
-  async findAll(user: string): Promise<Notes[]> {
+  async findAll(req: Request): Promise<Notes[]> {
+    const user = req.user as User;
+    if (!user || !user._id) {
+      throw new HttpException('Unauthorized', 401);
+    }
+
     return await this.noteModel.find({ user }).exec();
   }
 
-  async findOne(id: string, user: string) {
-    return await this.noteModel.find({ _id: id, user });
+  async findOne(id: string, req: Request) {
+    const reqUser = req.user as User;
+    if (!reqUser || !reqUser._id) {
+      throw new HttpException('Unauthorized', 401);
+    }
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValid) throw new HttpException('Invalid ID', 404);
+
+    const notes = await this.noteModel.find({ _id: id, user: reqUser._id });
+
+    if (!notes) throw new HttpException('Note ID not found', 404);
+    return notes;
   }
 
   async update(
-    { id, user }: { id: string; user: User },
+    id: string,
+    req: Request,
     updateNoteDto: UpdateNoteDto,
   ): Promise<Notes> {
+    const reqUser = req.user as User;
+
+    if (!reqUser || !reqUser._id) {
+      throw new HttpException('Unauthorized', 401);
+    }
+
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValid) throw new HttpException('Invalid ID', 404);
+
     const findNote = await this.noteModel.findById(id).populate('user');
 
     if (!findNote) {
@@ -63,7 +91,7 @@ export class NotesService {
 
     const noteUserId = findNote.user._id.toString();
 
-    if (noteUserId !== user._id) {
+    if (noteUserId !== reqUser._id) {
       throw new ForbiddenException('You can not edit this note');
     }
 
@@ -78,7 +106,17 @@ export class NotesService {
     return note;
   }
 
-  async remove(id: string, user: User) {
+  async remove(id: string, req: Request) {
+    const reqUser = req.user as User;
+
+    if (!reqUser || !reqUser._id) {
+      throw new HttpException('Unauthorized', 401);
+    }
+
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValid) throw new HttpException('Invalid ID', 404);
+
     const findNote = await this.noteModel.findById(id).populate('user');
 
     if (!findNote) {
@@ -87,7 +125,7 @@ export class NotesService {
 
     const noteUserId = findNote.user._id.toString();
 
-    if (noteUserId !== user._id) {
+    if (noteUserId !== reqUser._id) {
       throw new ForbiddenException('You can not delete this note');
     }
 
