@@ -27,13 +27,21 @@ DELETE http://localhost:3000/notes/691724df0ea73bc8886363c5
 Content-Type: application/json
 authorization: Bearer <input your tooken here>
 
-###
-
+### login
 POST http://localhost:3000/auth/login
 content-type: application/json
 
 {
   "email": "test@email.com",
+  "password": "testpass"
+}
+
+### signup
+POST http://localhost:3000/auth/signup
+content-type: application/json
+
+{
+  "email": "<mustbeunique@email.com>",
   "password": "testpass"
 }
 ### GOOGLE LOGIN
