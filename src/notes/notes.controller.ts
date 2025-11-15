@@ -49,8 +49,12 @@ export class NotesController {
 
   @UseGuards(AuthGuard)
   @Get()
-  async findAll() {
-    const notes = await this.notesService.findAll();
+  async findAll(@Req() req: Request) {
+    const user = req.user as User;
+    if (!user || !user._id) {
+      throw new HttpException('Unauthorized', 401); // Or any appropriate status
+    }
+    const notes = await this.notesService.findAll(user._id.toString());
     return {
       status: 'success',
       data: notes,

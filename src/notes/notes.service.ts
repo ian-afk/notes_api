@@ -38,8 +38,8 @@ export class NotesService {
     }
   }
 
-  async findAll(): Promise<Notes[]> {
-    return await this.noteModel.find().exec();
+  async findAll(user: string): Promise<Notes[]> {
+    return await this.noteModel.find({ user }).exec();
   }
 
   async findOne(id: string) {
@@ -47,6 +47,9 @@ export class NotesService {
   }
 
   async update(id: string, updateNoteDto: UpdateNoteDto): Promise<Notes> {
+    // antok na ako at this point
+    // 1 add a logic to check if the userId is equal to the req.userid
+    // 2 if correct then proceed
     const note = await this.noteModel.findByIdAndUpdate(id, updateNoteDto, {
       new: true,
     });
