@@ -1,0 +1,40 @@
+### GET ALL NOTE
+GET http://localhost:3000/notes
+authorization: Bearer <input your tooken here>
+
+### UPDATE NOTE
+PATCH http://localhost:3000/notes/691724df0ea73bc8886363c5
+Content-Type: application/json
+authorization: Bearer <input your tooken here>
+
+{
+  "title": "updating logged in",
+  "content": "updated logged in"
+}
+
+### ADD NOTE
+POST http://localhost:3000/notes
+Content-Type: application/json
+authorization: Bearer <input your tooken here>
+
+{
+  "title": "Test",
+  "content": "google logged in"
+}
+
+### DELETE NOTE
+DELETE http://localhost:3000/notes/691724df0ea73bc8886363c5
+Content-Type: application/json
+authorization: Bearer <input your tooken here>
+
+###
+
+POST http://localhost:3000/auth/login
+content-type: application/json
+
+{
+  "email": "test@email.com",
+  "password": "testpass"
+}
+### GOOGLE LOGIN
+### http://localhost:3000/auth/google

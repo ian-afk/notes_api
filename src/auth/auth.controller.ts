@@ -20,9 +20,15 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  login(@Body() loginDto: LoginUserDto) {
+  async login(@Body() loginDto: LoginUserDto) {
     const { email, password } = loginDto;
     return this.authService.signIn(email, password);
+  }
+
+  @Post('signup')
+  async signup(@Body() loginDto: LoginUserDto) {
+    const { email, password } = loginDto;
+    return this.authService.singUp(email, password);
   }
 
   @Get('google')

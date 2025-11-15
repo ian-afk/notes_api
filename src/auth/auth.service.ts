@@ -1,4 +1,5 @@
 import {
+  HttpException,
   // BadRequestException,
   Injectable,
   InternalServerErrorException,
@@ -43,6 +44,8 @@ export class AuthService {
   }
 
   async singUp(email: string, password: string): Promise<{ token: string }> {
+    const findEmail = await this.userModel.findOne({ email });
+    if (findEmail) throw new HttpException('Email already exist', 409);
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = new this.userModel({ email, password: hashedPassword });
