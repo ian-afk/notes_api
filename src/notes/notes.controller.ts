@@ -14,7 +14,7 @@ import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 
 import { UpdateNoteDto } from './dto/update-note.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import type { Request, User } from 'express';
 
 @Controller('notes')
@@ -47,7 +47,8 @@ export class NotesController {
   @UseGuards(AuthGuard)
   @Get()
   async findAll(@Req() req: Request) {
-    const notes = await this.notesService.findAll(req);
+    const user = req.user as User;
+    const notes = await this.notesService.findAll(user);
 
     return {
       status: 'success',
@@ -58,7 +59,8 @@ export class NotesController {
   @UseGuards(AuthGuard)
   @Get('/:id')
   async findOne(@Param('id') id: string, @Req() req: Request) {
-    const findNote = await this.notesService.findOne(id, req);
+    const user = req.user as User;
+    const findNote = await this.notesService.findOne(id, user);
 
     return { status: 'success', data: findNote };
   }
@@ -70,7 +72,8 @@ export class NotesController {
     @Body() updateNoteDto: UpdateNoteDto,
     @Req() req: Request,
   ) {
-    const updateNote = await this.notesService.update(id, req, updateNoteDto);
+    const user = req.user as User;
+    const updateNote = await this.notesService.update(id, user, updateNoteDto);
 
     return {
       message: 'Note updated successfully',
@@ -82,7 +85,8 @@ export class NotesController {
   @UseGuards(AuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: Request) {
-    await this.notesService.remove(id, req);
+    const user = req.user as User;
+    await this.notesService.remove(id, user);
 
     return {
       message: `Note deleted successfully`,

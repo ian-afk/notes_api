@@ -4,7 +4,7 @@ import { Users } from './schemas/users.schema';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import bcrypt from 'node_modules/bcryptjs';
+import bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {

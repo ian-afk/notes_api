@@ -11,8 +11,8 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Document, Error, Model } from 'mongoose';
 import { Notes } from './schemas/note.schema';
-import { Users } from 'src/users/schemas/users.schema';
-import { Request, User } from 'express';
+import { Users } from '../users/schemas/users.schema';
+import { User } from 'express';
 import { UserDocument } from 'src/types/common';
 
 type NoteDocument = Notes & Document;
@@ -30,7 +30,9 @@ export class NotesService {
   ): Promise<Notes> {
     const existing = await this.noteModel.findOne({ title });
     const userId = await this.userModel.findById(user);
+
     if (!userId) throw new NotFoundException('User not found');
+
     if (existing) {
       throw new ConflictException(`Note "${title}" already exists`);
     }
@@ -44,38 +46,49 @@ export class NotesService {
     }
   }
 
-  async findAll(req: Request): Promise<Notes[]> {
-    const user = req.user as User;
-    if (!user || !user._id) {
+  async findAll(reqUser: User): Promise<Notes[]> {
+    const user = reqUser._id;
+
+    if (!user) {
       throw new HttpException('Unauthorized', 401);
     }
 
     return await this.noteModel.find({ user }).exec();
   }
 
-  async findOne(id: string, req: Request) {
-    const reqUser = req.user as User;
-    if (!reqUser || !reqUser._id) {
+  async findOne(id: string, reqUser: User) {
+    const ObjectId = mongoose.Types.ObjectId;
+    const noteId = new ObjectId(id);
+    const userId = new ObjectId(reqUser._id);
+    console.log(userId);
+
+    console.log(id);
+
+    if (!userId) {
       throw new HttpException('Unauthorized', 401);
     }
+
     const isValid = mongoose.Types.ObjectId.isValid(id);
 
     if (!isValid) throw new HttpException('Invalid ID', 404);
 
-    const notes = await this.noteModel.find({ _id: id, user: reqUser._id });
+    const notes = await this.noteModel
+      .findOne({ _id: noteId, user: userId })
+      .exec();
 
     if (!notes) throw new HttpException('Note ID not found', 404);
+
     return notes;
   }
 
   async update(
     id: string,
-    req: Request,
+    reqUser: User,
     updateNoteDto: UpdateNoteDto,
   ): Promise<Notes> {
-    const reqUser = req.user as User;
+    const user = reqUser;
 
-    if (!reqUser || !reqUser._id) {
+    if (!user || !user._id) {
       throw new HttpException('Unauthorized', 401);
     }
 
@@ -91,7 +104,7 @@ export class NotesService {
 
     const noteUserId = findNote.user._id.toString();
 
-    if (noteUserId !== reqUser._id) {
+    if (noteUserId !== user._id) {
       throw new ForbiddenException('You can not edit this note');
     }
 
@@ -103,13 +116,14 @@ export class NotesService {
     const note = (await this.noteModel.findByIdAndUpdate(id, updateNoteDto, {
       new: true,
     })) as Notes;
+
     return note;
   }
 
-  async remove(id: string, req: Request) {
-    const reqUser = req.user as User;
+  async remove(id: string, reqUser: User) {
+    const user = reqUser;
 
-    if (!reqUser || !reqUser._id) {
+    if (!user || !user._id) {
       throw new HttpException('Unauthorized', 401);
     }
 
@@ -125,7 +139,7 @@ export class NotesService {
 
     const noteUserId = findNote.user._id.toString();
 
-    if (noteUserId !== reqUser._id) {
+    if (noteUserId !== user._id) {
       throw new ForbiddenException('You can not delete this note');
     }
 
