@@ -14,7 +14,8 @@ Notes API assessment zeniark Simple note api with google auth
 - docker
 - npm
 - nestjs
-- rest client extensions
+- rest client extensions (vscode)
+- POSTMAN or BRUNO
 
 ## Installation
 
@@ -31,19 +32,21 @@ install npm
   npm install -g @nestjs/cli
   ```
 
-1. Clone the repo
+1. Open terminal to Clone the repo
 
 ```sh
 git clone https://github.com/ian-afk/notes_api.git
 ```
 
-2. Install npm packages
+2. cd or go to the cloned repo
+
+3. Install npm packages for node_modules
 
 ```sh
 npm install
 ```
 
-3. Create your env file for google auth this will setup for later
+4. Create your env file for google auth this will setup for later
 
 ```sh
 GOOGLE_CLIENT_ID=sampleclientID
