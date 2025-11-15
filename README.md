@@ -111,10 +111,11 @@ Heres our API endpoints
 - PATCH http://localhost:3000/notes/:id
 - DELETE http://localhost:3000/notes/:id
 
--- When you logged in the account it response with token that we can use to logged in
+## -- When you logged in the account it response with token that we can use to logged in
 
+- POST http://localhost:3000/auth/signup
 - POST http://localhost:3000/auth/login
   for google login we will urn the uri below in chrome
 - http://localhost:3000/auth/google
 
-You can also find the _rest.http_ in the folder
+You can also find the _rest.http_ in the folder for testing the API
