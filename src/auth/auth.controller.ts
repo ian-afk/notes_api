@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginUserDto } from 'src/users/dto/login-user.dto';
+import { LoginUserDto } from '../users/dto/login-user.dto';
 import { GoogleOauthGuard } from './google-oauth.guard';
 import type { Request, Response, User } from 'express';
 
