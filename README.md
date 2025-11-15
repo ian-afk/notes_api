@@ -115,7 +115,7 @@ Heres our API endpoints
 
 - POST http://localhost:3000/auth/signup
 - POST http://localhost:3000/auth/login
-  for google login we will urn the uri below in chrome
+  for google login we will enter the uri below in google chrome to test the google auth
 - http://localhost:3000/auth/google
 
 You can also find the _rest.http_ in the folder for testing the API
